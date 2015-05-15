@@ -13,22 +13,32 @@
 
 
 if !exists(':SmartHomeKey')
-	command! SmartHomeKey call SmartHomeKey()
+	command! SmartHomeKey call s:SmartHomeKey(0)
 endif
 
-function! SmartHomeKey()
+" This is useful for delete motions
+if !exists(':SmartLeftOnlyHomeKey')
+	command! SmartLeftOnlyHomeKey call s:SmartHomeKey(1)
+endif
+
+function! s:SmartHomeKey(leftOnly)
 	let l:lnum	=	line('.')
 	let l:ccol	=	col('.')
 	execute 'normal! ^'
 	let l:fcol	=	col('.')
+    " corner case when on whitespace only line, in which case
+    " ^ will be on the last whitespace
+    " so the desired l:fcol is + 1
+    let [l:wline, l:wcol] = searchpos('\s\_$', 'nc', line('.'))
+    if l:wcol == l:fcol
+        let l:fcol = l:fcol + 1
+    endif
 	execute 'normal! 0'
 	let l:hcol	=	col('.')
 
-	if l:ccol != l:fcol
+	if l:ccol > l:fcol || (a:leftOnly == 0 && l:ccol != l:fcol)
 		call cursor(l:lnum, l:fcol)
 	else
 		call cursor(l:lnum, l:hcol)
 	endif
 endfun
-
-
